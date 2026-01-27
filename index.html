@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>生日快乐！</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 开始按钮遮罩层 -->
+    <div id="start-screen">
+        <div class="start-content">
+            <h1>有一份特别的礼物...</h1>
+            <button id="start-btn">点击开启</button>
+        </div>
+    </div>
+    
+    <!-- 背景音乐 (隐藏) -->
+    <audio id="bgm" loop>
+        <source src="bgm.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+    
+    <!-- 音乐控制按钮 -->
+    <div id="music-control" class="hidden">
+        <div class="music-icon-bar"></div>
+        <div class="music-icon-bar"></div>
+        <div class="music-icon-bar"></div>
+    </div>
+    
+    <!-- 时间模式控制 -->
+    <div id="time-control" class="hidden">
+        <button onclick="setTheme('day')" title="白天模式">白昼</button>
+        <button onclick="setTheme('sunset')" title="黄昏模式">黄昏</button>
+        <button onclick="setTheme('night')" title="夜晚模式">星夜</button>
+    </div>
+
+    <!-- 主内容区 -->
+    <div id="main-content" class="hidden">
+        <!-- 烟花画布 -->
+        <canvas id="fireworks"></canvas>
+        
+        <!-- 流星画布 -->
+        <canvas id="shooting-stars"></canvas>
+        
+        <!-- 气球画布 -->
+        <canvas id="balloons"></canvas>
+        
+        <!-- 孔明灯画布 -->
+        <canvas id="lanterns"></canvas>
+        
+        <!-- 祝福文字容器 -->
+        <div class="message-container">
+            <div id="typing-text"></div>
+        </div>
+        
+        <!-- 弹幕容器 -->
+        <div id="danmaku-container"></div>
+
+        <!-- 流程第一步：许愿输入 (初始显示) -->
+        <div id="wish-input-panel" class="hint-text hidden">
+            <p>生日快乐</p>
+            <p>在吹灭蜡烛前，先许个愿吧：</p>
+            <div class="wish-input-container-inline">
+                <input type="text" id="pre-wish-input" placeholder="默念或输入愿望..." maxlength="20">
+                <button id="confirm-wish-btn" class="secondary-btn">许好了！</button>
+            </div>
+        </div>
+
+        <!-- 流程第二步：吹蜡烛提示 (初始隐藏) -->
+        <div id="blow-hint" class="hint-text hidden">
+            <p>愿望已收录</p>
+            <p>现在，请对着麦克风<b>轻轻吹气</b></p>
+            <!-- 增加麦克风音量可视化条 -->
+            <div id="mic-visualizer" style="width: 100px; height: 4px; background: rgba(255,255,255,0.2); margin: 10px auto; border-radius: 2px; overflow: hidden;">
+                <div id="mic-level" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.1s;"></div>
+            </div>
+            <p>让愿望随烛光一同升起...</p>
+            <button id="manual-blow-btn" class="secondary-btn">（如果麦克风在休息，点我帮忙吹灭）</button>
+        </div>
+
+        <!-- 纯CSS蛋糕 -->
+        <div class="cake-container">
+            <div class="cake">
+                <div class="plate"></div>
+                <div class="layer layer-bottom"></div>
+                <div class="layer layer-middle"></div>
+                <div class="layer layer-top"></div>
+                <div class="icing"></div>
+                <!-- 装饰品 -->
+                <div class="decorations">
+                    <div class="strawberry" style="top: 15px; left: 115px;"></div>
+                    <div class="strawberry" style="top: 30px; left: 60px;"></div>
+                    <div class="strawberry" style="top: 30px; right: 60px;"></div>
+                    <div class="strawberry" style="top: 60px; left: 90px;"></div>
+                    <div class="strawberry" style="top: 60px; right: 90px;"></div>
+                </div>
+                <div class="drip drip1"></div>
+                <div class="drip drip2"></div>
+                <div class="drip drip3"></div>
+                <div class="candle">
+                    <div class="flame" id="flame"></div>
+                    <div class="smoke" id="smoke"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 许愿成功弹窗 -->
+        <div id="wish-modal" class="modal hidden">
+            <div class="modal-content">
+                <!-- 步骤1：愿望已许下 -->
+                <div id="modal-step-1">
+                    <h2>愿望已发送</h2>
+                    <p>祝你新的一年：</p>
+                    <p class="wish-text" id="wish-display">万事胜意，未来可期！</p>
+                    <p class="instruction-text">点击礼物盒查收惊喜</p>
+                    <div class="gift-box" id="gift-box">
+                        <div class="gift-box-lid">
+                            <div class="gift-bow"></div>
+                            <div class="gift-ribbon-v"></div>
+                        </div>
+                        <div class="gift-box-body">
+                            <div class="gift-ribbon-v"></div>
+                            <div class="gift-ribbon-h"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：惊喜 (隐藏) -->
+                <div id="modal-step-2" class="hidden">
+                    <h2>Surprise!</h2>
+                    <p class="final-blessing">愿你所有的梦想<br>都像今晚的烟花一样绽放！</p>
+                    <p class="closing-hint">(3秒后进入狂欢模式...)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/confetti.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

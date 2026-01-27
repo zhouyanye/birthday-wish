@@ -1,0 +1,1047 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #020205;
+    color: #fff;
+    font-family: 'Noto Serif SC', 'Microsoft YaHei', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* 白天模式背景 */
+body.day-mode {
+    background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%);
+    color: #333;
+}
+
+body.day-mode #start-screen {
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+}
+
+body.day-mode .start-content h1 {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+body.day-mode #typing-text {
+    color: #E91E63;
+    text-shadow: none;
+    font-weight: bold;
+}
+
+body.day-mode .danmaku-item {
+    color: #E91E63;
+    text-shadow: none;
+    font-weight: bold;
+}
+
+body.day-mode .hint-text {
+    /* 白天模式下也移除背景框 */
+    background: transparent; 
+    box-shadow: none;
+    color: #E91E63; /* 使用深粉色，配合文字阴影 */
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+body.day-mode .secondary-btn {
+    border-color: #E91E63;
+    color: #E91E63;
+    background: rgba(255,255,255,0.3);
+}
+
+body.day-mode .secondary-btn:hover {
+    background: rgba(255,255,255,0.6);
+}
+
+/* 黄昏模式背景 */
+body.sunset-mode {
+    background: linear-gradient(to bottom, #4b6cb7 0%, #182848 100%); /* 深蓝渐变 */
+    background: linear-gradient(180deg, #2b32b2 0%, #1488cc 100%); /* 备选 */
+    background: linear-gradient(to bottom, #3E5151 0%, #DECBA4 100%); /* 备选2 */
+    background: linear-gradient(to bottom, #2C3E50 0%, #FD746C 100%); /* 最终选定：日落红 */
+    color: #fff;
+}
+
+body.sunset-mode #start-screen {
+    background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%);
+}
+
+/* 黄昏模式隐藏气球、烟花、流星 */
+body.sunset-mode #fireworks,
+body.sunset-mode #shooting-stars,
+body.sunset-mode #balloons {
+    display: none;
+}
+
+/* 孔明灯画布 */
+#lanterns {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: none;
+}
+
+body.sunset-mode #lanterns {
+    display: block;
+}
+
+/* 气球爆炸文字 */
+.pop-text {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Ma Shan Zheng', cursive;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: popUp 1s ease-out forwards;
+    z-index: 100;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+@keyframes popUp {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    50% { transform: translate(-50%, -100%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -150%) scale(1); opacity: 0; }
+}
+
+/* 隐藏白天模式下的烟花和流星canvas */
+body.day-mode #fireworks, 
+body.day-mode #shooting-stars {
+    display: none;
+}
+
+/* 气球画布 */
+#balloons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: none;
+}
+
+body.day-mode #balloons {
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 启动屏幕 */
+#start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 1s ease;
+}
+
+.start-content {
+    text-align: center;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.start-content h1 {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+    color: #d6336c;
+}
+
+#start-btn {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    background: #d6336c;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(214, 51, 108, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: 'Noto Serif SC', serif;
+}
+
+#start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(214, 51, 108, 0.6);
+}
+
+/* 拍立得相关样式已移除 */
+
+/* 音乐控制按钮 - 动态音律条样式 */
+#music-control {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.15);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#music-control:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.music-icon-bar {
+    width: 4px;
+    background: #fff;
+    border-radius: 2px;
+    animation: music-wave 1s ease-in-out infinite;
+}
+
+.music-icon-bar:nth-child(1) { height: 16px; animation-delay: 0.0s; }
+.music-icon-bar:nth-child(2) { height: 24px; animation-delay: 0.2s; }
+.music-icon-bar:nth-child(3) { height: 18px; animation-delay: 0.4s; }
+
+/* 暂停状态：停止跳动并变灰 */
+#music-control.paused .music-icon-bar {
+    animation-play-state: paused;
+    background: rgba(255, 255, 255, 0.5);
+    height: 10px !important; /* 暂停时变平 */
+    transition: height 0.3s;
+}
+
+@keyframes music-wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.6); }
+}
+
+/* 白天模式适配 */
+body.day-mode #music-control {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.day-mode .music-icon-bar {
+    background: #E91E63;
+}
+
+body.day-mode #music-control.paused .music-icon-bar {
+    background: #999;
+}
+
+/* 时间控制面板 */
+#time-control {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 2000;
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#time-control button {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 5px 10px;
+    line-height: 1;
+    font-family: 'Noto Serif SC', serif;
+    border-radius: 15px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+#time-control button:hover {
+    transform: scale(1.1);
+    background: rgba(255,255,255,0.2);
+}
+
+/* 白天模式下按钮颜色适配 */
+body.day-mode #time-control button {
+    color: #333;
+    text-shadow: none;
+}
+
+body.day-mode #time-control button:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+/* 主内容区 */
+#main-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* 烟花画布 */
+#fireworks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* 流星画布 */
+#shooting-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* 祝福语 */
+.message-container {
+    position: absolute;
+    top: 15%;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#typing-text {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 2.5rem;
+    line-height: 1.6;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    min-height: 100px;
+    white-space: pre-wrap;
+    padding: 0 20px;
+}
+
+/* 弹幕容器 */
+#danmaku-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.danmaku-item {
+    position: absolute;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    animation: slideLeft linear forwards;
+    font-family: 'Ma Shan Zheng', cursive;
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(-100%); }
+}
+
+/* 内联许愿输入框样式 */
+.wish-input-container-inline {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto; /* 确保可点击 */
+}
+
+#pre-wish-input {
+    padding: 8px 15px;
+    font-size: 1rem;
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
+    width: 200px;
+    outline: none;
+    text-align: center;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    font-family: 'Ma Shan Zheng', cursive;
+}
+
+#pre-wish-input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+/* 白天模式适配 */
+body.day-mode #pre-wish-input {
+    border-color: #E91E63;
+    color: #E91E63;
+    background: rgba(255,255,255,0.4);
+}
+
+body.day-mode #pre-wish-input::placeholder {
+    color: rgba(233, 30, 99, 0.6);
+}
+
+/* 提示文字 */
+.hint-text {
+    position: absolute;
+    top: 35%;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    z-index: 20;
+    /* 移除背景阴影框，仅保留文字 */
+    padding: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* 增加文字阴影保证可读性 */
+}
+
+.hint-text p {
+    margin: 5px 0;
+    font-size: 1.2rem;
+    font-weight: bold; /* 加粗字体 */
+}
+
+.secondary-btn {
+    margin-top: 10px;
+    background: rgba(0,0,0,0.2); /* 按钮保留轻微背景 */
+    border: 1px solid rgba(255,255,255,0.6);
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.secondary-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
+}
+
+/* 蛋糕容器 - 居中底部 */
+.cake-container {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+/* CSS 蛋糕 */
+.cake {
+    position: relative;
+    width: 250px;
+    height: 200px;
+}
+
+.plate {
+    width: 270px;
+    height: 110px;
+    position: absolute;
+    bottom: -10px;
+    left: -10px;
+    background-color: #ccc;
+    border-radius: 50%;
+    box-shadow: 0 2px 0 #b3b3b3, 0 4px 0 #b3b3b3, 0 5px 40px rgba(0,0,0,0.5);
+}
+
+.layer {
+    position: absolute;
+    display: block;
+    width: 250px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #553c2a; /* 巧克力色 */
+}
+
+.layer-bottom {
+    top: 50px;
+    background-color: #FF9800; /* 橙色层 */
+    box-shadow: 
+        0 2px 0 #E68A00, 0 4px 0 #E68A00, 0 6px 0 #E68A00,
+        0 8px 0 #CC7A00, 0 10px 0 #CC7A00, 0 12px 0 #CC7A00,
+        0 14px 0 #B36B00, 0 16px 0 #B36B00, 0 18px 0 #B36B00,
+        0 20px 0 #B36B00, 0 22px 0 #B36B00, 0 24px 0 #B36B00,
+        0 26px 0 #B36B00, 0 28px 0 #B36B00, 0 30px 0 #B36B00;
+}
+
+.layer-middle {
+    top: 25px;
+    background-color: #FFC107; /* 黄色层 */
+    box-shadow: 
+        0 2px 0 #FFB300, 0 4px 0 #FFB300, 0 6px 0 #FFB300,
+        0 8px 0 #FFA000, 0 10px 0 #FFA000, 0 12px 0 #FFA000,
+        0 14px 0 #FF8F00, 0 16px 0 #FF8F00, 0 18px 0 #FF8F00,
+        0 20px 0 #FF8F00, 0 22px 0 #FF8F00, 0 24px 0 #FF8F00;
+}
+
+.layer-top {
+    top: 0px;
+    background-color: #FFEB3B; /* 浅黄层 */
+    box-shadow: 
+        0 2px 0 #FDD835, 0 4px 0 #FDD835, 0 6px 0 #FDD835,
+        0 8px 0 #FBC02D, 0 10px 0 #FBC02D, 0 12px 0 #FBC02D,
+        0 14px 0 #F9A825, 0 16px 0 #F9A825, 0 18px 0 #F9A825,
+        0 20px 0 #F9A825, 0 22px 0 #F9A825, 0 24px 0 #F9A825;
+}
+
+.icing {
+    top: 0px;
+    left: 0px;
+    background-color: #fce4ec;
+    width: 250px;
+    height: 100px;
+    border-radius: 50%;
+    position: absolute;
+    z-index: 1;
+    /* 彩色糖针效果 */
+    background-image: 
+        radial-gradient(circle, #ff5e57 2px, transparent 2.5px),
+        radial-gradient(circle, #0be881 2px, transparent 2.5px),
+        radial-gradient(circle, #ffc048 2px, transparent 2.5px),
+        radial-gradient(circle, #575fcf 2px, transparent 2.5px);
+    background-size: 40px 40px, 50px 50px, 60px 60px, 45px 45px;
+    background-position: 0 0, 15px 15px, 30px 10px, 20px 30px;
+}
+
+/* 草莓装饰优化 */
+.strawberry {
+    position: absolute;
+    width: 26px;
+    height: 32px;
+    background: radial-gradient(circle at 30% 30%, #ff5e57, #ff3333);
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    box-shadow: inset -2px -2px 5px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.1);
+    z-index: 6;
+    transform-origin: bottom center;
+}
+
+.strawberry::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 10px;
+    background: radial-gradient(circle at 50% 100%, #4CAF50, #2E7D32);
+    border-radius: 50% 50% 40% 40%;
+    clip-path: polygon(0% 100%, 20% 0%, 40% 60%, 50% 0%, 60% 60%, 80% 0%, 100% 100%);
+}
+
+.strawberry::after { /* 芝麻点 */
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(rgba(255,220,220,0.6) 1px, transparent 1px);
+    background-size: 6px 6px;
+    background-position: 3px 3px;
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+}
+
+.drip {
+    display: block;
+    width: 50px;
+    height: 60px;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+    background-color: #fce4ec;
+    position: absolute;
+    top: 50px; /* Adjust based on layer height */
+    z-index: 1;
+}
+
+.drip1 { left: 20px; height: 40px; transform: skewY(10deg); }
+.drip2 { left: 80px; height: 55px; transform: skewY(-5deg); }
+.drip3 { left: 160px; height: 35px; transform: skewY(5deg); }
+
+.candle {
+    background-color: #7B020B;
+    width: 16px;
+    height: 50px;
+    border-radius: 8px / 4px;
+    top: -20px;
+    left: 50%;
+    margin-left: -8px;
+    position: absolute;
+    z-index: 10;
+    box-shadow: inset 0 10px 10px -10px rgba(0, 0, 0, 0.5);
+    transition: transform 1s ease, opacity 1s ease; /* 添加过渡效果 */
+}
+
+.candle.removed {
+    transform: translateY(-50px) scale(0.8);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.candle:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ad030f;
+}
+
+.flame {
+    position: absolute;
+    background-color: orange;
+    width: 15px;
+    height: 35px;
+    border-radius: 10px 10px 10px 10px / 25px 25px 10px 10px;
+    top: -34px;
+    left: 50%;
+    margin-left: -7.5px;
+    z-index: 10;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 165, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.5);
+    transform-origin: 50% 90%;
+    animation: flicker 1s ease-in-out alternate infinite;
+    transition: opacity 0.5s;
+}
+
+.flame.out {
+    animation: extinguish 0.5s ease-out forwards;
+}
+
+@keyframes extinguish {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    20% {
+        transform: scale(1.2) skewX(-10deg);
+        opacity: 0.8;
+    }
+    40% {
+        transform: scale(0.8) skewX(10deg);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(0) translateY(-20px);
+        opacity: 0;
+    }
+}
+
+.smoke {
+    position: absolute;
+    width: 4px;
+    height: 40px;
+    top: -40px;
+    left: 50%;
+    margin-left: -2px;
+    background: linear-gradient(to top, rgba(255,255,255,0.8), rgba(255,255,255,0));
+    border-radius: 50% 50% 0 0;
+    filter: blur(2px);
+    opacity: 0;
+    z-index: 9;
+    transform-origin: bottom;
+}
+
+.smoke.puff {
+    animation: smoke-rise 2.5s ease-out forwards;
+}
+
+@keyframes smoke-rise {
+    0% { 
+        opacity: 0; 
+        transform: scaleY(0.1) translateX(0); 
+    }
+    20% { 
+        opacity: 0.6; 
+        transform: scaleY(1) translateX(-5px); 
+    }
+    60% {
+        opacity: 0.4;
+        transform: scaleY(1.5) translateX(5px);
+    }
+    100% { 
+        opacity: 0; 
+        transform: scaleY(2) translateX(-2px) translateY(-50px); 
+    }
+}
+
+@keyframes flicker {
+    0% {
+        transform: skewX(5deg);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.2), 0 0 20px rgba(255, 165, 0, 0.2), 0 0 60px rgba(255, 165, 0, 0.2), 0 0 80px rgba(255, 165, 0, 0.2);
+    }
+    25% {
+        transform: skewX(-5deg);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 165, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.5);
+    }
+    50% {
+        transform: skewX(10deg);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.3), 0 0 20px rgba(255, 165, 0, 0.3), 0 0 60px rgba(255, 165, 0, 0.3), 0 0 80px rgba(255, 165, 0, 0.3);
+    }
+    75% {
+        transform: skewX(-10deg);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.4), 0 0 20px rgba(255, 165, 0, 0.4), 0 0 60px rgba(255, 165, 0, 0.4), 0 0 80px rgba(255, 165, 0, 0.4);
+    }
+    100% {
+        transform: skewX(5deg);
+        box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 165, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.5);
+    }
+}
+
+/* 弹窗样式 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.5s;
+    transition: opacity 1s ease;
+}
+
+/* 鼠标拖尾粒子 */
+.cursor-particle {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 0 10px white, 0 0 20px #ffd700;
+    animation: fadeOut 1s linear forwards;
+}
+
+@keyframes fadeOut {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* 魔法光绘线条 */
+.light-stroke {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.5s ease-out;
+}
+
+/* 许愿输入框样式 */
+.wish-input-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#wish-input {
+    padding: 10px 15px;
+    font-size: 1.2rem;
+    border: 2px solid #ff9a9e;
+    border-radius: 25px;
+    width: 80%;
+    outline: none;
+    text-align: center;
+    color: #333;
+    font-family: 'Ma Shan Zheng', cursive;
+}
+
+#send-wish-btn {
+    padding: 10px 30px;
+    font-size: 1.1rem;
+    background: linear-gradient(to right, #ff9a9e, #fecfef);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 154, 158, 0.4);
+    transition: transform 0.2s;
+    font-family: 'Noto Serif SC', serif;
+}
+
+#send-wish-btn:hover {
+    transform: scale(1.05);
+}
+
+/* 金色流星许愿效果 */
+.wish-star {
+    position: absolute;
+    color: #ffd700;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Ma Shan Zheng', cursive;
+    text-shadow: 0 0 10px #ffd700;
+    z-index: 2000;
+    pointer-events: none;
+    animation: wishFly 1.5s ease-in forwards;
+}
+
+@keyframes wishFly {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -800px) scale(0.2); opacity: 0; }
+}
+
+/* 模态框内容 - 3D效果容器 */
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 400px;
+    position: relative;
+    /* 3D 属性 */
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    transition: transform 0.1s ease-out; /* 平滑跟随 */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* 内部元素增加层次感 */
+.modal-content h2, 
+.modal-content p, 
+.gift-box,
+.wish-input-container {
+    transform: translateZ(20px); /* 凸起效果 */
+}
+
+.modal-content h2 {
+    color: #d6336c;
+    margin-bottom: 15px;
+}
+
+.wish-text {
+    font-size: 1.5rem;
+    color: #444;
+    margin: 20px 0;
+    font-weight: bold;
+}
+
+.instruction-text {
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: 20px;
+    animation: pulse 2s infinite;
+}
+
+.final-blessing {
+    font-size: 1.4rem;
+    color: #e91e63;
+    line-height: 1.6;
+    margin: 20px 0;
+    font-weight: bold;
+}
+
+.closing-hint {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.gift-box {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 20px auto;
+    cursor: pointer;
+    transition: transform 0.3s;
+    animation: bounce 2s infinite;
+    display: inline-block;
+}
+
+.gift-box-body {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 50px;
+    background: #e91e63;
+    border-radius: 0 0 5px 5px;
+    box-shadow: inset 0 -5px rgba(0,0,0,0.1);
+}
+
+.gift-box-lid {
+    position: absolute;
+    top: 5px;
+    left: -5px;
+    width: 70px;
+    height: 15px;
+    background: #c2185b;
+    border-radius: 5px;
+    z-index: 2;
+}
+
+.gift-ribbon-v {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 100%;
+    background: #ffd700;
+}
+
+.gift-ribbon-h {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 10px;
+    background: #ffd700;
+}
+
+.gift-bow {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 10px;
+    z-index: 3;
+}
+
+.gift-bow::before, .gift-bow::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 3px solid #ffd700;
+    border-radius: 50%;
+    top: 0;
+}
+
+.gift-bow::before {
+    left: -10px;
+    transform: rotate(-10deg);
+}
+
+.gift-bow::after {
+    right: -10px;
+    transform: rotate(10deg);
+}
+
+.gift-box:hover {
+    transform: scale(1.1);
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-20px);}
+    60% {transform: translateY(-10px);}
+}
+
+/* 截图专用隐藏类，区别于普通的 hidden */
+.hidden-for-snapshot {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    /* 适配刘海屏/挖孔屏 */
+    #music-control {
+        top: max(15px, env(safe-area-inset-top) + 10px);
+        right: max(15px, env(safe-area-inset-right) + 10px);
+        /* ... existing styles ... */
+        width: 35px;
+        height: 35px;
+    }
+
+    #time-control {
+        top: max(15px, env(safe-area-inset-top) + 10px);
+        left: max(15px, env(safe-area-inset-left) + 10px);
+        /* ... existing styles ... */
+        padding: 5px 10px;
+        gap: 5px;
+    }
+
+    /* 蛋糕居中终极修复方案 */
+    .cake-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        left: 0;
+        transform: none; /* 移除容器的transform */
+        bottom: 15%;
+    }
+
+    .cake {
+        transform: scale(0.65); /* 仅保留缩放 */
+        left: auto; /* 移除left定位 */
+        margin-left: 0;
+        /* 修正移动端hover导致scale叠加的问题 */
+    }
+    
+    .cake:hover {
+        transform: scale(0.7);
+    }
+    
+    /* ... existing styles ... */
+
+    .start-content h1 {
+        font-size: 2rem; 
+        padding: 0 15px;
+        margin-top: env(safe-area-inset-top); /* 避免标题被刘海遮挡 */
+    }
+
+/* 平板适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .cake {
+        transform: scale(0.9);
+    }
+    #typing-text {
+        font-size: 2.2rem;
+    }
+}
+}
