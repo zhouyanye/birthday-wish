@@ -936,6 +936,8 @@ function animate() {
 
     if (firstRender) {
         firstRender = false;
+        window.__sceneReady = true;
+        window.dispatchEvent(new Event('scene-ready'));
         setTimeout(() => {
             const loading = document.getElementById('loading');
             if (loading) loading.classList.add('hidden');
