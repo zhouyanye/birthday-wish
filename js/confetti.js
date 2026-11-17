@@ -1,4 +1,3 @@
-
 // 简单的物理引擎彩带特效
 class ConfettiParticle {
     constructor(x, y, colors) {
@@ -61,39 +60,58 @@ class ConfettiCannon {
             '#ff5e57', '#0be881', '#ffc048', '#575fcf', '#ef5777', '#F8EFBA', 
             '#d63031', '#0984e3', '#6c5ce7', '#00b894', '#e17055', '#fdcb6e'
         ];
-        
+
+        // 高清屏适配：位图放大，绘制坐标仍为 CSS 像素
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.w = window.innerWidth;
+        this.h = window.innerHeight;
+        this.running = false;
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
         
         this.animate = this.animate.bind(this);
-        requestAnimationFrame(this.animate);
     }
 
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.w = window.innerWidth;
+        this.h = window.innerHeight;
+        this.canvas.width = Math.round(this.w * this.dpr);
+        this.canvas.height = Math.round(this.h * this.dpr);
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     }
 
     burst(x, y, count = 100) {
         for (let i = 0; i < count; i++) {
             this.particles.push(new ConfettiParticle(x, y, this.colors));
         }
+
+        // 只有存在粒子时才运行动画循环，空闲时不占用 CPU
+        if (!this.running) {
+            this.running = true;
+            requestAnimationFrame(this.animate);
+        }
     }
 
     animate() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.w, this.h);
         
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.update();
             p.draw(this.ctx);
             
-            if (p.opacity <= 0 || p.y > this.canvas.height + 100) {
+            if (p.opacity <= 0 || p.y > this.h + 100) {
                 this.particles.splice(i, 1);
             }
         }
-        
-        requestAnimationFrame(this.animate);
+
+        if (this.particles.length > 0) {
+            requestAnimationFrame(this.animate);
+        } else {
+            this.running = false;
+            this.ctx.clearRect(0, 0, this.w, this.h);
+        }
     }
 }
 

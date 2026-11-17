@@ -2,52 +2,94 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="一份特别的生日祝福：写下愿望、吹灭蜡烛、拆开礼物，收下属于你的惊喜。">
+    <meta name="theme-color" content="#020205">
+    <meta name="format-detection" content="telephone=no">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="生日快乐！有一份特别的礼物...">
+    <meta property="og:description" content="写下愿望、吹灭蜡烛、拆开礼物，收下属于你的惊喜。">
+    <meta property="og:url" content="https://zhouyanye.github.io/birthday-wish/">
+    <meta property="og:image" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:secure_url" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- 绑定自定义域名后，记得同步修改上面的 og:url / og:image -->
     <title>生日快乐！</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎂%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 字体异步加载：网络不可用时也不会阻塞首屏，自动回退系统字体 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/style.css?v=20261117">
+    <script>
+        window._hmt = window._hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?95f8de02e29032073d4ddda7109222be";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
 </head>
 <body>
     <!-- 开始按钮遮罩层 -->
     <div id="start-screen">
         <div class="start-content">
             <h1>有一份特别的礼物...</h1>
-            <button id="start-btn">点击开启</button>
+            <p class="start-sub" id="start-sub">送给你的生日惊喜</p>
+            <button id="start-btn" type="button">点击开启</button>
         </div>
     </div>
     
     <!-- 背景音乐 (隐藏) -->
-    <audio id="bgm" loop>
+    <audio id="bgm" loop preload="metadata" playsinline>
         <source src="bgm.mp3" type="audio/mpeg">
         您的浏览器不支持音频元素。
     </audio>
     
     <!-- 音乐控制按钮 -->
-    <div id="music-control" class="hidden">
+    <div id="music-control" class="hidden" role="button" tabindex="0" aria-label="播放或暂停背景音乐">
         <div class="music-icon-bar"></div>
         <div class="music-icon-bar"></div>
         <div class="music-icon-bar"></div>
+    </div>
+
+    <!-- 分享按钮 -->
+    <div id="share-control" class="hidden" role="button" tabindex="0" aria-label="分享这份生日祝福" title="分享">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.6" y1="10.5" x2="15.4" y2="6.5"></line>
+            <line x1="8.6" y1="13.5" x2="15.4" y2="17.5"></line>
+        </svg>
     </div>
     
     <!-- 时间模式控制 -->
     <div id="time-control" class="hidden">
-        <button onclick="setTheme('day')" title="白天模式">白昼</button>
-        <button onclick="setTheme('sunset')" title="黄昏模式">黄昏</button>
-        <button onclick="setTheme('night')" title="夜晚模式">星夜</button>
+        <button type="button" onclick="setTheme('day')" title="白天模式">白昼</button>
+        <button type="button" onclick="setTheme('sunset')" title="黄昏模式">黄昏</button>
+        <button type="button" onclick="setTheme('night')" title="夜晚模式">星夜</button>
     </div>
+
+    <!-- 轻提示 -->
+    <div id="toast" role="status" aria-live="polite"></div>
 
     <!-- 主内容区 -->
     <div id="main-content" class="hidden">
         <!-- 烟花画布 -->
-        <canvas id="fireworks"></canvas>
+        <canvas id="fireworks" aria-hidden="true"></canvas>
         
         <!-- 流星画布 -->
-        <canvas id="shooting-stars"></canvas>
+        <canvas id="shooting-stars" aria-hidden="true"></canvas>
         
         <!-- 气球画布 -->
-        <canvas id="balloons"></canvas>
+        <canvas id="balloons" aria-hidden="true"></canvas>
         
         <!-- 孔明灯画布 -->
-        <canvas id="lanterns"></canvas>
+        <canvas id="lanterns" aria-hidden="true"></canvas>
         
         <!-- 祝福文字容器 -->
         <div class="message-container">
@@ -63,20 +105,20 @@
             <p>在吹灭蜡烛前，先许个愿吧：</p>
             <div class="wish-input-container-inline">
                 <input type="text" id="pre-wish-input" placeholder="默念或输入愿望..." maxlength="20">
-                <button id="confirm-wish-btn" class="secondary-btn">许好了！</button>
+                <button id="confirm-wish-btn" class="secondary-btn" type="button">许好了！</button>
             </div>
         </div>
 
         <!-- 流程第二步：吹蜡烛提示 (初始隐藏) -->
         <div id="blow-hint" class="hint-text hidden">
             <p>愿望已收录</p>
-            <p>现在，请对着麦克风<b>轻轻吹气</b></p>
+            <p id="blow-tip">现在，请对着麦克风<b>轻轻吹气</b></p>
             <!-- 增加麦克风音量可视化条 -->
             <div id="mic-visualizer" style="width: 100px; height: 4px; background: rgba(255,255,255,0.2); margin: 10px auto; border-radius: 2px; overflow: hidden;">
                 <div id="mic-level" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.1s;"></div>
             </div>
             <p>让愿望随烛光一同升起...</p>
-            <button id="manual-blow-btn" class="secondary-btn">（如果麦克风在休息，点我帮忙吹灭）</button>
+            <button id="manual-blow-btn" class="secondary-btn" type="button">（如果麦克风在休息，点我帮忙吹灭）</button>
         </div>
 
         <!-- 纯CSS蛋糕 -->
@@ -114,7 +156,7 @@
                     <p>祝你新的一年：</p>
                     <p class="wish-text" id="wish-display">万事胜意，未来可期！</p>
                     <p class="instruction-text">点击礼物盒查收惊喜</p>
-                    <div class="gift-box" id="gift-box">
+                    <div class="gift-box" id="gift-box" role="button" tabindex="0" aria-label="拆开礼物">
                         <div class="gift-box-lid">
                             <div class="gift-bow"></div>
                             <div class="gift-ribbon-v"></div>
@@ -136,7 +178,8 @@
         </div>
     </div>
 
-    <script src="js/confetti.js"></script>
-    <script src="js/script.js"></script>
+    <!-- 发布新版前把 v= 后面的日期改一下，可绕过 GitHub Pages 的缓存 -->
+    <script src="js/confetti.js?v=20261117"></script>
+    <script src="js/script.js?v=20261117"></script>
 </body>
 </html>

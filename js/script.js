@@ -1,10 +1,34 @@
+// 设备能力与动效偏好检测
+const isCoarsePointer = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+// 百度统计事件埋点（统计脚本未加载时静默跳过）
+function trackEvent(action, label) {
+    if (window._hmt) {
+        window._hmt.push(['_trackEvent', '生日祝福', action, label || '']);
+    }
+}
+
+// canvas 高清屏适配：位图放大 DPR 倍，绘制坐标仍使用 CSS 像素
+function sizeHiDPI(targetCanvas, width, height) {
+    targetCanvas.width = Math.round(width * DPR);
+    targetCanvas.height = Math.round(height * DPR);
+    targetCanvas.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
 // 获取 URL 参数中的名字
 const urlParams = new URLSearchParams(window.location.search);
-const name = urlParams.get('name') || "你"; // 默认为“你”
+const rawName = (urlParams.get('name') || '').trim();
+const name = rawName ? rawName.slice(0, 12) : "你"; // 默认“你”，限制长度避免撑破排版
 
-// 动态更新网页标题
+// 动态更新网页标题与称呼
 if (name !== "你") {
     document.title = `祝 ${name} 生日快乐！`;
+    const startSub = document.getElementById('start-sub');
+    if (startSub) startSub.textContent = `送给 ${name} 的生日惊喜`;
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = `祝 ${name} 生日快乐！`;
 }
 
 // 祝福语数组 (打字机效果用)
@@ -42,7 +66,23 @@ const messages = [
     "May your day be as beautiful as you are.",
     "Stay happy and keep smiling.",
     "愿快乐拥抱你，在这属于你的特别的一天",
-    "生日快乐，我的朋友！"
+    "生日快乐，我的朋友！",
+    // TFBOYS & 王源相关祝福语
+    "像王源一样，勇敢追梦，闪闪发光！",
+    "愿你像TFBOYS一样，青春永驻，梦想成真",
+    "十年之约，我们都在——生日快乐！",
+    "愿你如王源般温柔坚定，向阳而生",
+    "源来是你，生日快乐！",
+    "愿你像王源一样，用音乐点亮世界",
+    "TFBOYS十年，愿你的青春也如此精彩",
+    "像王源一样，做自己喜欢的事，爱自己想爱的人",
+    "愿你拥有王源般的才华与温柔",
+    "青春不散场，梦想正启航——生日快乐！",
+    "愿你像TFBOYS一样，永远少年，永远热泪盈眶",
+    "王源说：坚持自己喜欢的事，就是幸福",
+    "愿你如源哥般，温柔且有力量",
+    "TFBOYS陪伴的青春，是最美的时光",
+    "愿你像王源一样，在舞台上闪闪发光"
 ];
 
 // 额外弹幕/气球祝福语库 (短小精悍)
@@ -55,7 +95,8 @@ const extraMessages = [
     "前程似锦", "美梦成真", "福星高照", "笑口常开", "青春永驻",
     "身体健康", "百无禁忌", "诸邪回避", "顺风顺水", "步步高升",
     "Nice!", "Cool!", "Wow!", "Yeah!", "O.M.G", "Best Wishes",
-    "天天开心", "好运连连", "惊喜不断", "幸福美满", "前途无量"
+    "天天开心", "好运连连", "惊喜不断", "幸福美满", "前途无量",
+   
 ];
 
 // 打字机效果
@@ -100,14 +141,12 @@ const ctx = canvas.getContext('2d');
 let canvasWidth = window.innerWidth;
 let canvasHeight = window.innerHeight;
 
-canvas.width = canvasWidth;
-canvas.height = canvasHeight;
+sizeHiDPI(canvas, canvasWidth, canvasHeight);
 
 window.addEventListener('resize', () => {
     canvasWidth = window.innerWidth;
     canvasHeight = window.innerHeight;
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
+    sizeHiDPI(canvas, canvasWidth, canvasHeight);
 });
 
 function random(min, max) {
@@ -322,8 +361,9 @@ function createRingParticles(x, y) {
 // --- 增强流星与星空效果 ---
 const starCanvas = document.getElementById('shooting-stars');
 const starCtx = starCanvas.getContext('2d');
-starCanvas.width = window.innerWidth;
-starCanvas.height = window.innerHeight;
+let starW = window.innerWidth;
+let starH = window.innerHeight;
+sizeHiDPI(starCanvas, starW, starH);
 
 let shootingStars = [];
 let staticStars = []; // 静态背景星星
@@ -331,18 +371,17 @@ let staticStars = []; // 静态背景星星
 // 静态星星类
 class StaticStar {
     constructor() {
-        this.x = Math.random() * starCanvas.width;
-        this.y = Math.random() * starCanvas.height;
+        this.x = Math.random() * starW;
+        this.y = Math.random() * starH;
         this.size = Math.random() * 1.5;
         this.opacity = Math.random();
-        this.flickerSpeed = 0.02 + Math.random() * 0.05;
+        this.flickerSpeed = 0.001 + Math.random() * 0.002;
+        this.phase = Math.random() * Math.PI * 2;
     }
 
     draw() {
-        this.opacity += Math.sin(Date.now() * this.flickerSpeed) * 0.01;
-        // 限制透明度范围
-        if (this.opacity > 1) this.opacity = 1;
-        if (this.opacity < 0.2) this.opacity = 0.2;
+        // 每颗星用固定相位做正弦闪烁（周期 2~6 秒），避免每帧累加导致整体变亮/变暗
+        this.opacity = 0.2 + (Math.sin(Date.now() * this.flickerSpeed + this.phase) + 1) * 0.4;
 
         starCtx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
         starCtx.beginPath();
@@ -363,8 +402,8 @@ class ShootingStar {
     }
 
     reset() {
-        this.x = Math.random() * starCanvas.width;
-        this.y = Math.random() * starCanvas.height * 0.5;
+        this.x = Math.random() * starW;
+        this.y = Math.random() * starH * 0.5;
         this.length = Math.random() * 80 + 50; // 更长
         this.speed = Math.random() * 15 + 10;   // 更快
         this.size = Math.random() * 2 + 1;      // 更大
@@ -388,7 +427,7 @@ class ShootingStar {
             this.opacity += this.fade;
         }
         
-        if (this.x > starCanvas.width + this.length || this.y > starCanvas.height + this.length) {
+        if (this.x > starW + this.length || this.y > starH + this.length) {
             this.active = false;
             this.reset();
         }
@@ -419,7 +458,7 @@ for (let i = 0; i < 8; i++) {
 let starsRequestId;
 
 function animateStars() {
-    starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    starCtx.clearRect(0, 0, starW, starH);
     
     // 绘制静态星星
     staticStars.forEach(star => star.draw());
@@ -436,29 +475,33 @@ function animateStars() {
 // animateStars();
 
 window.addEventListener('resize', () => {
-    starCanvas.width = window.innerWidth;
-    starCanvas.height = window.innerHeight;
+    starW = window.innerWidth;
+    starH = window.innerHeight;
+    sizeHiDPI(starCanvas, starW, starH);
 });
 
 // --- 气球效果 (白天模式) ---
 const balloonCanvas = document.getElementById('balloons');
 const balloonCtx = balloonCanvas.getContext('2d');
-balloonCanvas.width = window.innerWidth;
-balloonCanvas.height = window.innerHeight;
+let balloonW = window.innerWidth;
+let balloonH = window.innerHeight;
+sizeHiDPI(balloonCanvas, balloonW, balloonH);
 
 let balloons = [];
-const balloonColors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF9F43', '#54A0FF', '#5F27CD'];
+const balloonColors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#FF9F43', '#54A0FF', '#5F27CD', 
+    // TFBOYS主题色：王源-绿色(薄荷绿), 王俊凯-蓝色, 易烊千玺-红色
+    '#98D8C8', '#5DADE2', '#E74C3C', '#58D68D', '#85C1E9', '#EC7063'];
 
 class Balloon {
     constructor() {
         this.reset();
         // 初始随机位置分布在屏幕下方
-        this.y = window.innerHeight + Math.random() * 200; 
+        this.y = balloonH + Math.random() * 200; 
     }
 
     reset() {
-        this.x = Math.random() * balloonCanvas.width;
-        this.y = balloonCanvas.height + Math.random() * 100;
+        this.x = Math.random() * balloonW;
+        this.y = balloonH + Math.random() * 100;
         this.speed = Math.random() * 2 + 1;
         this.size = Math.random() * 20 + 30; // 半径
         this.color = balloonColors[Math.floor(Math.random() * balloonColors.length)];
@@ -514,7 +557,7 @@ for(let i = 0; i < 15; i++) {
 let balloonsRequestId;
 
 function animateBalloons() {
-    balloonCtx.clearRect(0, 0, balloonCanvas.width, balloonCanvas.height);
+    balloonCtx.clearRect(0, 0, balloonW, balloonH);
     balloons.forEach(b => {
         b.update();
         b.draw();
@@ -538,7 +581,7 @@ balloonCanvas.addEventListener('click', (e) => {
             popBalloon(b);
             // 重置该气球
             b.reset();
-            b.y = window.innerHeight + 100; // 让它从底部重新飘上来
+            b.y = balloonH + 100; // 让它从底部重新飘上来
             break; // 一次只戳破一个
         }
     }
@@ -561,28 +604,30 @@ function popBalloon(balloon) {
 }
 
 window.addEventListener('resize', () => {
-    balloonCanvas.width = window.innerWidth;
-    balloonCanvas.height = window.innerHeight;
+    balloonW = window.innerWidth;
+    balloonH = window.innerHeight;
+    sizeHiDPI(balloonCanvas, balloonW, balloonH);
 });
 
 
 // --- 孔明灯效果 (黄昏模式) ---
 const lanternCanvas = document.getElementById('lanterns');
 const lanternCtx = lanternCanvas.getContext('2d');
-lanternCanvas.width = window.innerWidth;
-lanternCanvas.height = window.innerHeight;
+let lanternW = window.innerWidth;
+let lanternH = window.innerHeight;
+sizeHiDPI(lanternCanvas, lanternW, lanternH);
 
 let lanterns = [];
 
 class Lantern {
     constructor() {
         this.reset();
-        this.y = window.innerHeight + Math.random() * 300; 
+        this.y = lanternH + Math.random() * 300; 
     }
 
     reset() {
-        this.x = Math.random() * lanternCanvas.width;
-        this.y = lanternCanvas.height + Math.random() * 100;
+        this.x = Math.random() * lanternW;
+        this.y = lanternH + Math.random() * 100;
         this.speed = Math.random() * 0.5 + 0.2; // 飞得很慢
         this.size = Math.random() * 10 + 20; // 宽度
         this.height = this.size * 1.4;
@@ -692,7 +737,7 @@ for(let i = 0; i < 20; i++) {
 let lanternsRequestId;
 
 function animateLanterns() {
-    lanternCtx.clearRect(0, 0, lanternCanvas.width, lanternCanvas.height);
+    lanternCtx.clearRect(0, 0, lanternW, lanternH);
     lanterns.forEach(l => {
         l.update();
         l.draw();
@@ -701,8 +746,9 @@ function animateLanterns() {
 }
 
 window.addEventListener('resize', () => {
-    lanternCanvas.width = window.innerWidth;
-    lanternCanvas.height = window.innerHeight;
+    lanternW = window.innerWidth;
+    lanternH = window.innerHeight;
+    sizeHiDPI(lanternCanvas, lanternW, lanternH);
 });
 
 
@@ -716,9 +762,9 @@ function stopAllAnimations() {
     
     // 清除画布残留
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
-    balloonCtx.clearRect(0, 0, balloonCanvas.width, balloonCanvas.height);
-    lanternCtx.clearRect(0, 0, lanternCanvas.width, lanternCanvas.height);
+    starCtx.clearRect(0, 0, starW, starH);
+    balloonCtx.clearRect(0, 0, balloonW, balloonH);
+    lanternCtx.clearRect(0, 0, lanternW, lanternH);
 }
 
 function setTheme(mode) {
@@ -735,6 +781,7 @@ function setTheme(mode) {
         animateLanterns();
     } else {
         // Night mode (default)
+        mode = 'night';
         animateStars();
         loop(); 
     }
@@ -764,7 +811,8 @@ let lastDrawY = 0;
 let drawHue = 0;
 
 document.addEventListener('mousedown', (e) => {
-    // 排除交互元素，避免冲突
+    // 排除交互元素，避免冲突；触屏设备与「减少动态效果」用户跳过光绘
+    if (isCoarsePointer || reduceMotion) return;
     if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.id === 'gift-box') return;
     isDrawing = true;
     lastDrawX = e.clientX;
@@ -786,6 +834,7 @@ document.addEventListener('mouseup', () => {
 
 // 触摸屏支持
 document.addEventListener('touchstart', (e) => {
+    if (reduceMotion) return;
     if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.id === 'gift-box') return;
     isDrawing = true;
     lastDrawX = e.touches[0].clientX;
@@ -803,7 +852,17 @@ document.addEventListener('touchend', () => {
     isDrawing = false;
 });
 
+document.addEventListener('touchcancel', () => {
+    isDrawing = false;
+});
+
+let strokeCount = 0;
+const MAX_STROKES = 60;
+
 function createLightStroke(x, y) {
+    if (strokeCount >= MAX_STROKES) return;
+    strokeCount++;
+
     const particle = document.createElement('div');
     particle.classList.add('light-stroke');
     particle.style.left = x + 'px';
@@ -820,7 +879,10 @@ function createLightStroke(x, y) {
     setTimeout(() => {
         particle.style.opacity = 0;
         particle.style.transform = 'scale(0)';
-        setTimeout(() => particle.remove(), 500);
+        setTimeout(() => {
+            particle.remove();
+            strokeCount--;
+        }, 500);
     }, 1500);
 }
 
@@ -828,12 +890,14 @@ function createLightStroke(x, y) {
 function enableInteractiveFireworks() {
     const canvas = document.getElementById('fireworks');
     canvas.addEventListener('click', (e) => {
+        if (document.body.classList.contains('day-mode') || document.body.classList.contains('sunset-mode')) return;
+
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
         // 发射一枚烟花到点击位置
-        fireworks.push(new Firework(canvas.width / 2, canvas.height, x, y));
+        fireworks.push(new Firework(canvasWidth / 2, canvasHeight, x, y));
     });
 }
 
@@ -843,12 +907,15 @@ enableInteractiveFireworks();
 
 // --- 弹幕功能 ---
 let lastDanmakuTime = 0;
+let danmakuTimer = null;
 const danmakuLanes = [10, 20, 30, 40, 50, 60]; // 预定义轨道（百分比）
 
 function startDanmaku() {
+    if (danmakuTimer) return;
+
     const container = document.getElementById('danmaku-container');
     
-    setInterval(() => {
+    danmakuTimer = setInterval(() => {
         const now = Date.now();
         if (now - lastDanmakuTime < 800) return; // 最小间隔控制
 
@@ -884,14 +951,19 @@ function startCelebration() {
     // 隐藏打字机文字
     document.getElementById('typing-text').style.display = 'none';
     clearTimeout(typingTimer);
+
+    // 蛋糕此时应该已经淡出，再兜底一次
+    hideCake(0);
+    restoreBgmVolume();
     
     // 增加烟花频率
     fireworkChance = 0.2;
     
     // 启动弹幕
     startDanmaku();
-    
-    console.log("Celebration Mode ON!");
+
+    // 统计：完整走完流程
+    trackEvent('flow-complete', name);
 }
 
 // --- 状态管理 ---
@@ -911,108 +983,216 @@ let currentState = AppState.IDLE;
 let audioContext;
 let analyser;
 let microphone;
+let audioDataArray = null;
+
+// 麦克风检测参数
+const MIC_INTERVAL = 90;
+const MIC_CALIBRATION_MS = 1200;
+const MIC_MIN_THRESHOLD = 52;
+const MIC_HOLD_FRAMES = 4;
+
+let micStatus = 'idle'; // idle | calibrating | ready | failed
+let micThreshold = 70;
+let micBaselineSum = 0;
+let micBaselineCount = 0;
+let micCalibrationStart = 0;
+let micLoudFrames = 0;
+let micTimer = null;
+
+const blowTip = document.getElementById('blow-tip');
+const DEFAULT_BLOW_TIP = blowTip ? blowTip.innerHTML : '';
+
+function updateMicBar(average) {
+    const levelBar = document.getElementById('mic-level');
+    if (!levelBar) return;
+    const reference = Math.max(60, micThreshold);
+    const percent = Math.min(100, (average / reference) * 100);
+    levelBar.style.width = percent + '%';
+    levelBar.style.background = average > micThreshold ? '#FF5252' : '#4CAF50';
+}
+
+// 吹气阶段压低 BGM，避免外放时音乐被麦克风拾取，造成“蜡烛自己灭了”
+function lowerBgmVolume() {
+    const audio = document.getElementById('bgm');
+    if (!audio || audio.paused) return;
+    clearInterval(audioFadeTimer);
+    audioFadeTimer = null;
+    if (audio.dataset.preMicVolume === undefined) {
+        audio.dataset.preMicVolume = String(audio.volume);
+    }
+    audio.volume = Math.min(audio.volume, 0.22);
+}
+
+function restoreBgmVolume() {
+    const audio = document.getElementById('bgm');
+    if (!audio || audio.dataset.preMicVolume === undefined) return;
+    clearInterval(audioFadeTimer);
+    audioFadeTimer = null;
+    audio.volume = Number(audio.dataset.preMicVolume);
+    delete audio.dataset.preMicVolume;
+}
 
 // 初始化音频
 async function initAudio() {
+    if (micStatus === 'calibrating' || micStatus === 'ready') return;
+
     try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // 尝试获取麦克风流
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
-        // 获取成功，连接分析器
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        // 关闭噪声抑制：它容易把持续的吹气声当成噪声消掉
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: false,
+                autoGainControl: false
+            }
+        });
+
+        // 用户可能已经手动吹灭或跳过了这一步，直接释放麦克风
+        if (currentState !== AppState.READY_TO_BLOW) {
+            stream.getTracks().forEach(track => track.stop());
+            if (audioContext && audioContext.state !== 'closed') audioContext.close();
+            micStatus = 'idle';
+            return;
+        }
+
         microphone = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.4;
+        audioDataArray = new Uint8Array(analyser.frequencyBinCount);
         microphone.connect(analyser);
-        
-        // 开始监测音量
-        monitorAudio();
-        
-        // 显示麦克风可视化条
+
+        // 先采样约 1.2 秒环境音（包含正在播放的 BGM），自适应出吹气阈值
+        micStatus = 'calibrating';
+        micBaselineSum = 0;
+        micBaselineCount = 0;
+        micLoudFrames = 0;
+        micCalibrationStart = performance.now();
+        if (blowTip) blowTip.innerHTML = '正在适应环境音量，请稍等…';
+
         document.getElementById('mic-visualizer').style.display = 'block';
-        
+        lowerBgmVolume();
+        trackEvent('mic', 'granted');
+        startMicLoop();
+
     } catch (err) {
         console.warn('无法获取麦克风权限或设备不支持，启用备用方案', err);
-        // 如果无法获取麦克风：
-        // 1. 隐藏音量条
+        micStatus = 'failed';
         const viz = document.getElementById('mic-visualizer');
-        if(viz) viz.style.display = 'none';
-        
-        // 2. 确保手动按钮可见（虽然默认就是可见的）
+        if (viz) viz.style.display = 'none';
         document.getElementById('manual-blow-btn').classList.remove('hidden');
+        if (blowTip) blowTip.innerHTML = '麦克风暂时用不了，点下面的按钮吹灭蜡烛';
+        trackEvent('mic', 'denied');
     }
 }
 
-// 监测音量
+function startMicLoop() {
+    clearTimeout(micTimer);
+    monitorAudio();
+}
+
+// 固定间隔采样：比逐帧分析省电，检测也更稳定
 function monitorAudio() {
-    // 只有在“准备吹气”状态下才响应麦克风
+    clearTimeout(micTimer);
+
+    if (!analyser || micStatus === 'failed') return;
+
     if (currentState !== AppState.READY_TO_BLOW) {
-        requestAnimationFrame(monitorAudio);
+        if (currentState >= AppState.BLOWING) return;
+        micTimer = setTimeout(monitorAudio, 250);
         return;
     }
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
+    analyser.getByteFrequencyData(audioDataArray);
 
-    // 计算平均音量
     let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-        sum += dataArray[i];
+    for (let i = 0; i < audioDataArray.length; i++) {
+        sum += audioDataArray[i];
     }
-    const average = sum / dataArray.length;
+    const average = sum / audioDataArray.length;
 
-    // 更新可视化条
-    const levelBar = document.getElementById('mic-level');
-    if (levelBar) {
-        // 将 0-255 的音量映射到 0-100%
-        const percent = Math.min(100, (average / 60) * 100); 
-        levelBar.style.width = percent + '%';
-        // 颜色反馈：音量够大时变红
-        levelBar.style.background = average > 40 ? '#FF5252' : '#4CAF50';
+    updateMicBar(average);
+
+    if (micStatus === 'calibrating') {
+        micBaselineSum += average;
+        micBaselineCount++;
+
+        if (performance.now() - micCalibrationStart >= MIC_CALIBRATION_MS && micBaselineCount >= 5) {
+            const baseline = micBaselineSum / micBaselineCount;
+            // 阈值 = 环境基线 * 2.4，并限制区间，兼顾灵敏度和抗误触
+            micThreshold = Math.min(165, Math.max(MIC_MIN_THRESHOLD, baseline * 2.4));
+            micStatus = 'ready';
+            if (blowTip) blowTip.innerHTML = DEFAULT_BLOW_TIP;
+        }
+    } else if (micStatus === 'ready') {
+        if (average > micThreshold) {
+            micLoudFrames++;
+        } else {
+            micLoudFrames = 0;
+        }
+
+        // 连续 4 次超阈值（约 300ms）才判定为吹气，避免咳嗽、鼓点误触发
+        if (micLoudFrames >= MIC_HOLD_FRAMES) {
+            blowOutCandle('mic');
+            return;
+        }
     }
 
-    // 阈值检测
-    if (average > 40) {
-        blowOutCandle();
-    } else {
-        requestAnimationFrame(monitorAudio);
-    }
+    micTimer = setTimeout(monitorAudio, MIC_INTERVAL);
+}
+
+// 蛋糕在吹灭后短暂停留再淡出，避免一直占着画面
+let cakeHideTimer = null;
+function hideCake(delay = 0) {
+    const cake = document.querySelector('.cake-container');
+    if (!cake) return;
+    clearTimeout(cakeHideTimer);
+    cakeHideTimer = setTimeout(() => {
+        cake.classList.add('fade-out');
+        cakeHideTimer = setTimeout(() => cake.classList.add('hidden'), 1300);
+    }, delay);
 }
 
 // 吹灭蜡烛
-function blowOutCandle() {
+function blowOutCandle(source = 'mic') {
     if (currentState !== AppState.READY_TO_BLOW) return;
     currentState = AppState.BLOWING;
-    
-    // 隐藏提示
+
+    trackEvent('blow-candle', source);
+    restoreBgmVolume();
+    clearTimeout(micTimer);
+    micTimer = null;
+
     document.getElementById('blow-hint').classList.add('hidden');
-    
-    // 蜡烛熄灭动画
+
     const candle = document.querySelector('.candle');
     const flame = document.getElementById('flame');
     const smoke = document.getElementById('smoke');
-    
+
     flame.classList.add('out');
     smoke.style.opacity = 1;
     smoke.classList.add('puff');
-    
-    // 1.5秒后拔出蜡烛
+
+    // 1.2 秒后拔出蜡烛
     setTimeout(() => {
         candle.classList.add('removed');
         currentState = AppState.CANDLE_OUT;
-    }, 1500);
+    }, 1200);
 
-    // 延迟显示许愿弹窗 (等待蜡烛消失)
+    // 2 秒后弹出许愿卡片
     setTimeout(() => {
-        // 重置弹窗状态
-        // 直接显示步骤1（愿望已许下）
         document.getElementById('modal-step-1').classList.remove('hidden');
         document.getElementById('modal-step-2').classList.add('hidden');
-        
         document.getElementById('wish-modal').classList.remove('hidden');
-        currentState = AppState.GIFT_READY; // 此时才允许拆礼物
-    }, 2500);
+        currentState = AppState.GIFT_READY;
+    }, 2000);
+
+    // 蛋糕再停留一会儿就淡出，把舞台留给烟花
+    hideCake(2600);
 }
 
 // 许愿输入逻辑 (已废弃，改为提前输入)
@@ -1023,11 +1203,33 @@ document.getElementById('send-wish-btn').addEventListener('click', () => {
 */
 
 // --- 彩蛋触发词功能 ---
+function showFloatingText(text) {
+    const el = document.createElement('div');
+    el.className = 'pop-text';
+    el.textContent = text;
+    el.style.left = '50%';
+    el.style.top = '42%';
+    el.style.color = '#ffd700';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+}
+
 function checkEasterEgg(wish) {
+    // 白天/黄昏模式看不到烟花画布，改用彩带 + 祝福气泡，避免“许愿后毫无反应”
+    const isNightMode = !document.body.classList.contains('day-mode') && !document.body.classList.contains('sunset-mode');
+    if (!isNightMode) {
+        window.confettiCannon.burst(window.innerWidth / 2, window.innerHeight * 0.62, 140);
+        showFloatingText(wish.slice(0, 6));
+        return;
+    }
+
     if (wish.includes("爱") || wish.includes("Love") || wish.includes("喜欢")) {
         triggerLoveExplosion();
     } else if (wish.includes("富") || wish.includes("钱") || wish.includes("财")) {
         triggerMoneyRain();
+    } else if (wish.includes("王源") || wish.includes("TFBOYS") || wish.includes("源哥") || wish.includes("小汤圆")) {
+        // TFBOYS/王源专属彩蛋
+        triggerTFBOYSEffect();
     } else {
         // 如果没有触发特定彩蛋，则将愿望本身作为烟花发射
         // 延迟一点点，让普通烟花先炸
@@ -1035,6 +1237,44 @@ function checkEasterEgg(wish) {
             createTextFirework(wish.substring(0, 4), window.innerWidth / 2, window.innerHeight * 0.3);
         }, 1000);
     }
+}
+
+// TFBOYS/王源专属特效
+function triggerTFBOYSEffect() {
+    // 发射TFBOYS主题色烟花（绿、蓝、红）
+    const tfboysColors = [
+        { h: 150, name: '王源绿' },      // 绿色 - 王源
+        { h: 200, name: '俊凯蓝' },      // 蓝色 - 王俊凯
+        { h: 0, name: '千玺红' }         // 红色 - 易烊千玺
+    ];
+    
+    let count = 0;
+    const interval = setInterval(() => {
+        const color = tfboysColors[count % 3];
+        // 在不同位置发射对应颜色的烟花
+        const x = window.innerWidth * (0.2 + (count % 3) * 0.3);
+        const y = window.innerHeight * 0.3;
+        
+        // 创建特殊颜色的粒子爆炸
+        for (let i = 0; i < 60; i++) {
+            const p = new Particle(x, y);
+            p.angle = (Math.PI * 2 * i) / 60;
+            p.speed = random(3, 6);
+            p.hue = color.h;
+            p.friction = 0.95;
+            p.decay = 0.015;
+            particles.push(p);
+        }
+        
+        count++;
+        if (count > 8) clearInterval(interval);
+    }, 400);
+    
+    // 同时撒下四叶草形状的彩带（四叶草是TFBOYS粉丝的象征）
+    setTimeout(() => {
+        window.confettiCannon.colors = ['#98D8C8', '#5DADE2', '#E74C3C', '#58D68D', '#85C1E9', '#EC7063'];
+        window.confettiCannon.burst(window.innerWidth / 2, window.innerHeight / 2, 400);
+    }, 500);
 }
 
 function triggerLoveExplosion() {
@@ -1127,9 +1367,19 @@ function createTextFirework(text, x, y) {
 }
 
 // 鼠标拖尾特效
+let lastTrailTime = 0;
+let trailCount = 0;
+const MAX_TRAILS = 50;
+
 document.addEventListener('mousemove', (e) => {
-    // 限制粒子生成频率，避免性能问题
-    if (Math.random() > 0.3) return; 
+    // 触屏设备与「减少动态效果」用户不生成拖尾
+    if (isCoarsePointer || reduceMotion) return;
+
+    const now = performance.now();
+    // 时间节流 + 数量上限，避免高频 mousemove 生成过多 DOM
+    if (now - lastTrailTime < 40 || trailCount >= MAX_TRAILS || Math.random() > 0.5) return;
+    lastTrailTime = now;
+    trailCount++;
 
     const particle = document.createElement('div');
     particle.classList.add('cursor-particle');
@@ -1144,13 +1394,16 @@ document.addEventListener('mousemove', (e) => {
     
     setTimeout(() => {
         particle.remove();
+        trailCount--;
     }, 1000);
 });
 
 // 许愿弹窗交互逻辑
-document.getElementById('gift-box').addEventListener('click', () => {
+function openGift() {
     // 只有在礼物准备好（蜡烛吹灭且弹窗弹出）后才能点击
     if (currentState !== AppState.GIFT_READY) return;
+
+    trackEvent('gift-open', name);
 
     // 切换到第二步：展示惊喜
     document.getElementById('modal-step-1').classList.add('hidden');
@@ -1173,12 +1426,22 @@ document.getElementById('gift-box').addEventListener('click', () => {
             startCelebration(); // 开启狂欢
         }, 1000);
     }, 3000);
+}
+
+const giftBox = document.getElementById('gift-box');
+giftBox.addEventListener('click', openGift);
+giftBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openGift();
+    }
 });
 
 // 3D 悬浮视差特效
 const modal = document.querySelector('.modal-content');
 document.addEventListener('mousemove', (e) => {
-    // 只有当弹窗显示时才生效
+    // 只有当弹窗显示时才生效；触屏与「减少动态效果」用户跳过
+    if (isCoarsePointer || reduceMotion) return;
     if (document.getElementById('wish-modal').classList.contains('hidden')) return;
 
     const rect = modal.getBoundingClientRect();
@@ -1206,28 +1469,28 @@ document.addEventListener('mouseleave', () => {
 
 // 手动吹灭按钮
 document.getElementById('manual-blow-btn').addEventListener('click', () => {
-    blowOutCandle();
+    blowOutCandle('manual');
 });
 
 // 启动逻辑
 document.getElementById('start-btn').addEventListener('click', () => {
     currentState = AppState.WISHING; // 进入许愿状态
-    document.getElementById('start-screen').style.opacity = 0;
+    document.getElementById('start-screen').classList.add('fade-away');
+    trackEvent('start', name);
     
-    // 播放音乐
+    // 播放音乐（渐入，避免一开场声音太大）
     const audio = document.getElementById('bgm');
-    
-    // 尝试播放音乐，如果失败（如浏览器限制自动播放），则在用户交互时再次尝试
+    audio.volume = 0;
     const playPromise = audio.play();
     
     if (playPromise !== undefined) {
         playPromise.then(() => {
             document.getElementById('music-control').classList.remove('hidden');
-            // 播放成功，移除 paused 类
             document.getElementById('music-control').classList.remove('paused');
+            fadeInAudio(audio, 0.65, 2500);
         }).catch(error => {
             console.log("Audio play failed (browser restriction): ", error);
-            // 播放失败，显示暂停状态的按钮，引导用户点击
+            audio.volume = 0.65;
             document.getElementById('music-control').classList.remove('hidden');
             document.getElementById('music-control').classList.add('paused');
             
@@ -1252,6 +1515,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
         document.getElementById('start-screen').classList.add('hidden');
         document.getElementById('main-content').classList.remove('hidden');
         document.getElementById('time-control').classList.remove('hidden');
+        document.getElementById('share-control').classList.remove('hidden');
         // 移除相机按钮相关代码，因为已经删除了
         // document.getElementById('camera-btn').classList.remove('hidden');
         
@@ -1279,7 +1543,10 @@ document.getElementById('confirm-wish-btn').addEventListener('click', () => {
     initAudio();
 
     const input = document.getElementById('pre-wish-input');
-    const wish = input.value.trim() || "万事胜意";
+    const rawWish = input.value.trim();
+    const wish = rawWish || "万事胜意";
+
+    trackEvent('wish-submit', rawWish ? 'custom' : 'default');
     
     // 保存愿望供后续使用
     window.currentWish = wish;
@@ -1297,14 +1564,141 @@ document.getElementById('confirm-wish-btn').addEventListener('click', () => {
     checkEasterEgg(wish);
 });
 
+// 输入框里按回车也能提交愿望
+document.getElementById('pre-wish-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('confirm-wish-btn').click();
+    }
+});
+
 // 音乐控制逻辑
-document.getElementById('music-control').addEventListener('click', function() {
+const musicControl = document.getElementById('music-control');
+
+function toggleMusic() {
     const audio = document.getElementById('bgm');
     if (audio.paused) {
         audio.play();
-        this.classList.remove('paused');
+        musicControl.classList.remove('paused');
     } else {
         audio.pause();
-        this.classList.add('paused');
+        musicControl.classList.add('paused');
+    }
+}
+
+musicControl.addEventListener('click', toggleMusic);
+musicControl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleMusic();
     }
 });
+
+// --- 分享与复制链接 ---
+let toastTimer = null;
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+let audioFadeTimer = null;
+
+function fadeInAudio(audio, targetVolume, duration) {
+    clearInterval(audioFadeTimer);
+    const stepTime = 50;
+    const step = targetVolume / (duration / stepTime);
+    audioFadeTimer = setInterval(() => {
+        if (audio.paused) {
+            clearInterval(audioFadeTimer);
+            audioFadeTimer = null;
+            return;
+        }
+        audio.volume = Math.min(targetVolume, audio.volume + step);
+        if (audio.volume >= targetVolume) {
+            clearInterval(audioFadeTimer);
+            audioFadeTimer = null;
+        }
+    }, stepTime);
+}
+
+function buildShareUrl() {
+    const url = new URL(window.location.href);
+    url.hash = '';
+    // GitHub Pages 子路径部署：统一成以 / 结尾的目录地址，分享出去更干净
+    url.pathname = url.pathname.replace(/index\.html$/, '');
+    if (!url.pathname.endsWith('/')) url.pathname += '/';
+    if (name !== '你') {
+        url.searchParams.set('name', name);
+    } else {
+        url.searchParams.delete('name');
+    }
+    return url.toString();
+}
+
+async function copyText(text) {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch (err) {
+        // 继续走兜底方案
+    }
+
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.top = '-1000px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+        const ok = document.execCommand('copy');
+        textarea.remove();
+        return ok;
+    } catch (err) {
+        return false;
+    }
+}
+
+async function sharePage() {
+    const url = buildShareUrl();
+    const shareData = {
+        title: name !== '你' ? `祝 ${name} 生日快乐！` : '生日快乐！有一份特别的礼物',
+        text: '写下愿望、吹灭蜡烛、拆开礼物，收下属于你的惊喜。',
+        url: url
+    };
+
+    trackEvent('share');
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            return;
+        } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            // 分享面板不可用时退回复制链接
+        }
+    }
+
+    const copied = await copyText(url);
+    showToast(copied ? '链接已复制，发给 TA 吧' : '复制失败，请长按地址栏复制');
+}
+
+const shareControl = document.getElementById('share-control');
+if (shareControl) {
+    shareControl.addEventListener('click', sharePage);
+    shareControl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            sharePage();
+        }
+    });
+}
+
