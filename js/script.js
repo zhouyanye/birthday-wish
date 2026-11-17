@@ -23,6 +23,25 @@ const urlParams = new URLSearchParams(window.location.search);
 const rawName = (urlParams.get('name') || '').trim();
 const name = rawName ? rawName.slice(0, 12) : "你"; // 默认“你”，限制长度避免撑破排版
 
+// 显式检测 WebGL：探测上下文后立即释放，避免误判「没有 WebGL」
+function hasWebGLSupport() {
+    if (typeof hasWebGLSupport.cached === 'boolean') return hasWebGLSupport.cached;
+
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+        if (gl) {
+            const lose = gl.getExtension('WEBGL_lose_context');
+            if (lose) lose.loseContext();
+        }
+        hasWebGLSupport.cached = !!gl;
+    } catch (err) {
+        hasWebGLSupport.cached = false;
+    }
+
+    return hasWebGLSupport.cached;
+}
+
 // 体验模式：经典 2D / 3D 沉浸，记住上次选择
 let preferredMode = '2d';
 try {
@@ -1681,6 +1700,18 @@ applyModeUI();
 document.getElementById('start-btn').addEventListener('click', () => {
     // 3D 沉浸模式：进入独立的 3D 场景页
     if (preferredMode === '3d') {
+        if (!hasWebGLSupport()) {
+            preferredMode = '2d';
+            try {
+                localStorage.setItem('bday-mode', '2d');
+            } catch (err) {
+                // localStorage 不可用时忽略
+            }
+            applyModeUI();
+            showToast('当前浏览器不支持 3D，已切回经典 2D');
+            return;
+        }
+
         const query = name !== '你' ? `?name=${encodeURIComponent(name)}` : '';
         location.href = `3d.html${query}`;
         return;

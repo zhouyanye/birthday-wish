@@ -1,13 +1,28 @@
-import * as THREE from './vendor/three/three.module.js';
+import * as THREE from './vendor/three/three.module.min.js';
 
 const canvas = document.getElementById('scene');
 const fallback = document.getElementById('fallback');
+
+const WEBGL_SUPPORTED = (function () {
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+        if (!gl) return false;
+        const lose = gl.getExtension('WEBGL_lose_context');
+        if (lose) lose.loseContext();
+        return true;
+    } catch (err) {
+        return false;
+    }
+})();
+
 
 let renderer;
 try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 } catch (err) {
-    fallback.style.display = 'flex';
+    // 不覆盖页面：主页会保留轻量版，并提示高清版加载失败
+    window.__galaxyError = err && err.message ? err.message : 'WebGL init failed';
     throw err;
 }
 

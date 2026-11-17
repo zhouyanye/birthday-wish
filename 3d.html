@@ -19,7 +19,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/three-birthday.css?v=20261117h">
+    <link rel="stylesheet" href="css/three-birthday.css?v=20261117o">
+    <link rel="modulepreload" href="./js/vendor/three/three.module.min.js">
+    <link rel="modulepreload" href="./js/vendor/three/three.core.min.js">
+    <link rel="modulepreload" href="./js/three-birthday.js?v=20261117o">
     <style>
         #replay {
             position: fixed;
@@ -101,6 +104,59 @@
             pointer-events: none;
             background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.5) 100%);
         }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: #01020a;
+            color: #fff;
+            transition: opacity 0.9s ease, visibility 0.9s;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-star {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ffd86b;
+            box-shadow: 0 0 24px 8px rgba(255, 200, 80, 0.6);
+            animation: loadingPulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(0.7); opacity: 0.5; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+
+        #loading p {
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+        }
+
+        #loading span {
+            font-size: 0.78rem;
+            opacity: 0.55;
+            letter-spacing: 0.06em;
+        }
+
+        #slow-tip {
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        #slow-tip.show {
+            opacity: 0.8;
+        }
     </style>
     <script>
         window._hmt = window._hmt || [];
@@ -114,6 +170,14 @@
 </head>
 <body>
     <canvas id="scene"></canvas>
+
+    <div id="loading">
+        <div class="loading-star"></div>
+        <p>正在准备 3D 生日场景…</p>
+        <span>第一次加载需要一点耐心</span>
+        <span id="slow-tip">网络有点慢，再等等…</span>
+    </div>
+
     <div id="vignette"></div>
 
     <div class="hud">
@@ -123,7 +187,7 @@
     </div>
 
     <div class="fallback" id="fallback">
-        当前浏览器没有可用的 WebGL，<br>3D 场景无法运行。<br><br>
+        3D 场景启动失败。<br><br>
         <a href="./index.html?mode=2d" style="color:#ffd86b;">返回经典 2D 版本</a>
     </div>
 
@@ -142,6 +206,8 @@
 
         function showDemoError(message) {
             if (window.__demoReady) return;
+            var loading = document.getElementById('loading');
+            if (loading) loading.classList.add('hidden');
             var box = document.getElementById('fallback');
             if (!box) return;
             box.style.display = 'flex';
@@ -158,8 +224,9 @@
         }
 
         setTimeout(function () {
-            showDemoError('3D 没有启动。<br><br>1. 确认浏览器支持 WebGL<br>2. 试试刷新或回到 2D 版本');
-        }, 9000);
+            var tip = document.getElementById('slow-tip');
+            if (tip) tip.classList.add('show');
+        }, 8000);
 
         // 背景音乐：第一次点击页面时开始播放
         var audio = document.getElementById('bgm');
@@ -192,6 +259,6 @@
         }, { once: true });
     </script>
 
-    <script type="module" src="./js/three-birthday.js?v=20261117k"></script>
+    <script type="module" src="./js/three-birthday.js?v=20261117o"></script>
 </body>
 </html>

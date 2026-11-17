@@ -1,13 +1,37 @@
-import * as THREE from './vendor/three/three.module.js';
+import * as THREE from './vendor/three/three.module.min.js';
 
 const canvas = document.getElementById('scene');
 const fallback = document.getElementById('fallback');
 
+const WEBGL_SUPPORTED = (function () {
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+        if (!gl) return false;
+        const lose = gl.getExtension('WEBGL_lose_context');
+        if (lose) lose.loseContext();
+        return true;
+    } catch (err) {
+        return false;
+    }
+})();
+
+
 let renderer;
 try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'low-power' });
 } catch (err) {
-    fallback.style.display = 'flex';
+    if (fallback) {
+        fallback.style.display = 'flex';
+        fallback.innerHTML = WEBGL_SUPPORTED
+            ? '轻量星空启动失败，正在尝试高清版…'
+            : '当前浏览器没有可用的 WebGL，银河视角无法运行。';
+    }
+    try {
+        if (window.parent && window.parent !== window) window.parent.__v2Ready = true;
+    } catch (probeErr) {
+        // 跨文档不可写时忽略
+    }
     throw err;
 }
 
@@ -454,6 +478,7 @@ canvas.addEventListener('wheel', (e) => {
 
 const clock = new THREE.Clock();
 let elapsed = 0;
+let firstRender = true;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -478,6 +503,15 @@ function animate() {
 
     updateMeteor(dt);
     renderer.render(scene, camera);
+
+    if (firstRender) {
+        firstRender = false;
+        try {
+            if (window.parent && window.parent !== window) window.parent.__v2Ready = true;
+        } catch (err) {
+            // 跨文档不可写时忽略
+        }
+    }
 }
 
 animate();

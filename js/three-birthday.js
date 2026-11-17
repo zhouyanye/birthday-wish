@@ -1,7 +1,21 @@
-import * as THREE from './vendor/three/three.module.js';
+import * as THREE from './vendor/three/three.module.min.js';
 
 const canvas = document.getElementById('scene');
 const fallback = document.getElementById('fallback');
+
+const WEBGL_SUPPORTED = (function () {
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+        if (!gl) return false;
+        const lose = gl.getExtension('WEBGL_lose_context');
+        if (lose) lose.loseContext();
+        return true;
+    } catch (err) {
+        return false;
+    }
+})();
+
 const hint = document.getElementById('scene-hint');
 const title = document.getElementById('scene-title');
 const replay = document.getElementById('replay');
@@ -15,7 +29,12 @@ let renderer;
 try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 } catch (err) {
-    fallback.style.display = 'flex';
+    if (fallback) {
+        fallback.style.display = 'flex';
+        fallback.innerHTML = WEBGL_SUPPORTED
+            ? '3D 场景启动失败：浏览器支持 WebGL，但上下文创建失败。<br><br>请刷新，或返回经典 2D 版本。<br><br><a href="./index.html?mode=2d" style="color:#ffd86b;">返回经典 2D</a>'
+            : '当前浏览器没有可用的 WebGL，3D 场景无法运行。<br><br><a href="./index.html?mode=2d" style="color:#ffd86b;">返回经典 2D</a>';
+    }
     throw err;
 }
 
@@ -779,6 +798,7 @@ window.addEventListener('pointerup', () => {
 // ---------- 动画 ----------
 const clock = new THREE.Clock();
 let elapsed = 0;
+let firstRender = true;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -913,6 +933,14 @@ function animate() {
     camera.lookAt(cameraLookTarget);
 
     renderer.render(scene, camera);
+
+    if (firstRender) {
+        firstRender = false;
+        setTimeout(() => {
+            const loading = document.getElementById('loading');
+            if (loading) loading.classList.add('hidden');
+        }, 300);
+    }
 }
 
 animate();

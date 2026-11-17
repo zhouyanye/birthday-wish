@@ -19,7 +19,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/three-birthday.css?v=20261117m">
+    <link rel="stylesheet" href="css/three-birthday.css?v=20261117o">
+    <link rel="modulepreload" href="./js/vendor/three/three.module.min.js">
+    <link rel="modulepreload" href="./js/vendor/three/three.core.min.js">
+    <link rel="modulepreload" href="./js/galaxy.js?v=20261117o">
+    <link rel="modulepreload" href="./js/galaxy-v2.js?v=20261117o">
     <style>
         #loading {
             position: fixed;
@@ -63,6 +67,15 @@
             font-size: 0.78rem;
             opacity: 0.55;
             letter-spacing: 0.06em;
+        }
+
+        #slow-tip {
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        #slow-tip.show {
+            opacity: 0.8;
         }
 
         #wish {
@@ -168,6 +181,7 @@
         <div class="loading-star"></div>
         <p>正在把银河铺开…</p>
         <span>第一次加载需要一点耐心</span>
+        <span id="slow-tip">网络有点慢，再等等…</span>
     </div>
 
     <div id="wish" role="status" aria-live="polite"></div>
@@ -181,7 +195,7 @@
     </div>
 
     <div class="fallback" id="fallback">
-        当前浏览器没有可用的 WebGL，<br>银河视角无法运行。<br><br>
+        银河视角启动失败。<br><br>
         <a href="./3d.html" style="color:#ffd86b;">返回 3D 生日场景</a>
     </div>
 
@@ -198,9 +212,10 @@
             box.innerHTML = message + '<br><br><a href="./3d.html" style="color:#ffd86b;">返回 3D 生日场景</a>';
         }
 
-        window.addEventListener('error', function (event) {
-            showDemoError('银河没有启动：' + (event.message || '模块加载失败') +
-                '<br><br>建议用 Chrome / Edge。');
+        window.addEventListener('error', function () {
+            if (window.__galaxyReady) return;
+            var hint = document.getElementById('hd-hint');
+            if (hint) hint.textContent = '高清版加载遇到问题，当前仍是轻量版';
         });
 
         if (location.protocol === 'file:') {
@@ -214,15 +229,24 @@
     <script type="module">
         window.__galaxyReady = false;
 
-        setTimeout(function () {
+        var loadingCheck = setInterval(function () {
+            if (!window.__v2Ready) return;
+            clearInterval(loadingCheck);
             var loading = document.getElementById('loading');
             if (loading) loading.classList.add('hidden');
-        }, 1200);
+        }, 200);
 
-        import('./js/galaxy.js?v=20261117m').catch(function () {
-            var hint = document.getElementById('hd-hint');
-            if (hint) hint.textContent = '高清版加载失败，继续看轻量版';
-        });
+        setTimeout(function () {
+            var tip = document.getElementById('slow-tip');
+            if (tip && !window.__v2Ready) tip.classList.add('show');
+        }, 8000);
+
+        setTimeout(function () {
+            import('./js/galaxy.js?v=20261117o').catch(function () {
+                var hint = document.getElementById('hd-hint');
+                if (hint) hint.textContent = '高清版加载失败，继续看轻量版';
+            });
+        }, 700);
 
         var switchTimer = setInterval(function () {
             if (!window.__galaxyReady) return;
@@ -233,6 +257,9 @@
             var hint = document.getElementById('hd-hint');
 
             canvas.classList.add('ready');
+
+            var loading = document.getElementById('loading');
+            if (loading) loading.classList.add('hidden');
 
             if (frame) {
                 frame.classList.add('fade');
