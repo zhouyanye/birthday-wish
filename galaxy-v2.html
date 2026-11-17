@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>银河 · 轻量版</title>
+    <link rel="stylesheet" href="css/three-birthday.css?v=20261117m">
+    <style>
+        html,
+        body {
+            background: #01020a;
+            overflow: hidden;
+        }
+
+        #scene {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+    <div class="fallback" id="fallback">当前浏览器没有可用的 WebGL。</div>
+    <script type="module" src="./js/galaxy-v2.js?v=20261117m"></script>
+</body>
+</html>

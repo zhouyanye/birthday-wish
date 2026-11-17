@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="3D 沉浸版生日祝福：星空、蛋糕、吹蜡烛、粒子和烟花。">
+    <meta name="theme-color" content="#01020a">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="3D 生日场景 · 生日快乐">
+    <meta property="og:description" content="吹灭蜡烛，看星空、蛋糕和烟花一起为你庆生。">
+    <meta property="og:url" content="https://zhouyanye.github.io/birthday-wish/3d.html">
+    <meta property="og:image" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:secure_url" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>3D 生日场景 · 生日快乐</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎂%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/three-birthday.css?v=20261117h">
+    <style>
+        #replay {
+            position: fixed;
+            right: max(16px, env(safe-area-inset-right) + 10px);
+            bottom: max(18px, env(safe-area-inset-bottom));
+            z-index: 12;
+            padding: 9px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffd86b;
+            font-family: inherit;
+            font-size: 0.86rem;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+        }
+
+        #replay:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        #music-toggle {
+            position: fixed;
+            top: max(16px, env(safe-area-inset-top));
+            right: max(16px, env(safe-area-inset-right));
+            z-index: 12;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffd86b;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            user-select: none;
+        }
+
+        #music-toggle:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        #view-toggle {
+            position: fixed;
+            top: calc(max(16px, env(safe-area-inset-top)) + 42px);
+            right: max(16px, env(safe-area-inset-right));
+            z-index: 12;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffd86b;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            user-select: none;
+        }
+
+        #view-toggle:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        #bgm {
+            display: none;
+        }
+
+        .hint {
+            max-width: 66vw;
+            text-align: center;
+            white-space: normal;
+            line-height: 1.5;
+        }
+
+        #vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 6;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.5) 100%);
+        }
+    </style>
+    <script>
+        window._hmt = window._hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?95f8de02e29032073d4ddda7109222be";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+    <div id="vignette"></div>
+
+    <div class="hud">
+        <a class="back" href="./index.html?mode=2d">← 返回经典 2D</a>
+        <h1 id="scene-title">生日快乐</h1>
+        <p>点击吹灭蜡烛，拖动换角度，右上角还可以看银河。</p>
+    </div>
+
+    <div class="fallback" id="fallback">
+        当前浏览器没有可用的 WebGL，<br>3D 场景无法运行。<br><br>
+        <a href="./index.html?mode=2d" style="color:#ffd86b;">返回经典 2D 版本</a>
+    </div>
+
+    <button id="replay" type="button">再看一次</button>
+
+    <div id="music-toggle" role="button" tabindex="0" aria-label="播放或暂停背景音乐">音乐开</div>
+
+    <div id="view-toggle" role="button" tabindex="0" aria-label="切换到银河视角">看银河</div>
+
+    <audio id="bgm" loop preload="metadata" playsinline>
+        <source src="bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        window.__demoReady = false;
+
+        function showDemoError(message) {
+            if (window.__demoReady) return;
+            var box = document.getElementById('fallback');
+            if (!box) return;
+            box.style.display = 'flex';
+            box.innerHTML = message + '<br><br><a href="./index.html?mode=2d" style="color:#ffd86b;">返回经典 2D 版本</a>';
+        }
+
+        window.addEventListener('error', function (event) {
+            showDemoError('3D 没有启动：' + (event.message || '模块加载失败') +
+                '<br><br>建议用 Chrome / Edge，或回到 2D 版本。');
+        });
+
+        if (location.protocol === 'file:') {
+            showDemoError('3D 场景需要通过本地服务器或线上地址打开。<br><br>建议使用 Chrome / Edge，或返回经典 2D 版本。');
+        }
+
+        setTimeout(function () {
+            showDemoError('3D 没有启动。<br><br>1. 确认浏览器支持 WebGL<br>2. 试试刷新或回到 2D 版本');
+        }, 9000);
+
+        // 背景音乐：第一次点击页面时开始播放
+        var audio = document.getElementById('bgm');
+        var musicToggle = document.getElementById('music-toggle');
+
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play().catch(function () {});
+                musicToggle.textContent = '音乐开';
+            } else {
+                audio.pause();
+                musicToggle.textContent = '音乐关';
+            }
+        }
+
+        musicToggle.addEventListener('click', toggleMusic);
+        musicToggle.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleMusic();
+            }
+        });
+
+        document.addEventListener('pointerdown', function () {
+            if (audio.paused) {
+                audio.volume = 0.55;
+                audio.play().catch(function () {});
+                musicToggle.textContent = '音乐开';
+            }
+        }, { once: true });
+    </script>
+
+    <script type="module" src="./js/three-birthday.js?v=20261117k"></script>
+</body>
+</html>

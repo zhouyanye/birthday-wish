@@ -5,3 +5,8 @@
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 本地 3D 测试页，只用于预览，不发布
+demos/
+# 本地测试服务器
+tools/serve.mjs

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="独立银河视角：银道坐标系、暗尘带、丝状星云和 26000 颗恒星。">
+    <meta name="theme-color" content="#01020a">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="银河 · 3D 星空">
+    <meta property="og:description" content="拖动环顾银河，滚轮缩放，看看星光和尘埃。">
+    <meta property="og:url" content="https://zhouyanye.github.io/birthday-wish/galaxy.html">
+    <meta property="og:image" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:secure_url" content="https://zhouyanye.github.io/birthday-wish/assets/share-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>银河 · 3D 星空</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎂%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/three-birthday.css?v=20261117m">
+    <style>
+        #loading {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: #01020a;
+            color: #fff;
+            transition: opacity 0.9s ease, visibility 0.9s;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-star {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ffd86b;
+            box-shadow: 0 0 24px 8px rgba(255, 200, 80, 0.6);
+            animation: loadingPulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { transform: scale(0.7); opacity: 0.5; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+
+        #loading p {
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+        }
+
+        #loading span {
+            font-size: 0.78rem;
+            opacity: 0.55;
+            letter-spacing: 0.06em;
+        }
+
+        #wish {
+            position: fixed;
+            left: 50%;
+            bottom: 14%;
+            transform: translate(-50%, 12px);
+            padding: 10px 20px;
+            border-radius: 24px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #fff;
+            font-size: 0.92rem;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            z-index: 15;
+            backdrop-filter: blur(6px);
+        }
+
+        #wish.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .starlove {
+            position: fixed;
+            left: 50%;
+            bottom: max(18px, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.48);
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        #v2-frame {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #01020a;
+            transition: opacity 1.2s ease;
+        }
+
+        #v2-frame.fade {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #scene {
+            z-index: 2;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.2s ease;
+        }
+
+        #scene.ready {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #hd-hint {
+            position: fixed;
+            left: 50%;
+            bottom: calc(66px + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 16;
+            max-width: 88vw;
+            padding: 8px 16px;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.78rem;
+            line-height: 1.45;
+            text-align: center;
+            pointer-events: none;
+            backdrop-filter: blur(6px);
+        }
+    </style>
+    <script>
+        window._hmt = window._hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?95f8de02e29032073d4ddda7109222be";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+    <iframe id="v2-frame" src="./galaxy-v2.html" title="轻量银河"></iframe>
+
+    <div id="loading">
+        <div class="loading-star"></div>
+        <p>正在把银河铺开…</p>
+        <span>第一次加载需要一点耐心</span>
+    </div>
+
+    <div id="wish" role="status" aria-live="polite"></div>
+    <div class="starlove">你看到的每颗星，都是想对你说的话</div>
+    <div id="hd-hint">高清银河加载中… 当前是轻量版，可以先用着</div>
+
+    <div class="hud">
+        <a class="back" id="back-to-3d" href="./3d.html">← 返回 3D 生日场景</a>
+        <h1>银河</h1>
+        <p>拖动环顾，滚轮缩放。点一下，把愿望交给银河。</p>
+    </div>
+
+    <div class="fallback" id="fallback">
+        当前浏览器没有可用的 WebGL，<br>银河视角无法运行。<br><br>
+        <a href="./3d.html" style="color:#ffd86b;">返回 3D 生日场景</a>
+    </div>
+
+    <script>
+        window.__demoReady = false;
+
+        function showDemoError(message) {
+            if (window.__demoReady) return;
+            var loading = document.getElementById('loading');
+            if (loading) loading.classList.add('hidden');
+            var box = document.getElementById('fallback');
+            if (!box) return;
+            box.style.display = 'flex';
+            box.innerHTML = message + '<br><br><a href="./3d.html" style="color:#ffd86b;">返回 3D 生日场景</a>';
+        }
+
+        window.addEventListener('error', function (event) {
+            showDemoError('银河没有启动：' + (event.message || '模块加载失败') +
+                '<br><br>建议用 Chrome / Edge。');
+        });
+
+        if (location.protocol === 'file:') {
+            showDemoError('银河场景需要通过本地服务器或线上地址打开。<br><br>建议使用 Chrome / Edge。');
+        }
+
+        var back = document.getElementById('back-to-3d');
+        if (back) back.href = './3d.html' + location.search;
+    </script>
+
+    <script type="module">
+        window.__galaxyReady = false;
+
+        setTimeout(function () {
+            var loading = document.getElementById('loading');
+            if (loading) loading.classList.add('hidden');
+        }, 1200);
+
+        import('./js/galaxy.js?v=20261117m').catch(function () {
+            var hint = document.getElementById('hd-hint');
+            if (hint) hint.textContent = '高清版加载失败，继续看轻量版';
+        });
+
+        var switchTimer = setInterval(function () {
+            if (!window.__galaxyReady) return;
+            clearInterval(switchTimer);
+
+            var canvas = document.getElementById('scene');
+            var frame = document.getElementById('v2-frame');
+            var hint = document.getElementById('hd-hint');
+
+            canvas.classList.add('ready');
+
+            if (frame) {
+                frame.classList.add('fade');
+                setTimeout(function () { frame.remove(); }, 1600);
+            }
+            if (hint) {
+                hint.textContent = '已切换到高清银河';
+                setTimeout(function () { hint.remove(); }, 1800);
+            }
+        }, 200);
+    </script>
+</body>
+</html>

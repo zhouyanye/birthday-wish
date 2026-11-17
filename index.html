@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- 字体异步加载：网络不可用时也不会阻塞首屏，自动回退系统字体 -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/style.css?v=20261117">
+    <link rel="stylesheet" href="css/style.css?v=20261117f">
     <script>
         window._hmt = window._hmt || [];
         (function () {
@@ -40,6 +40,10 @@
             <h1>有一份特别的礼物...</h1>
             <p class="start-sub" id="start-sub">送给你的生日惊喜</p>
             <button id="start-btn" type="button">点击开启</button>
+            <div class="mode-switch" role="group" aria-label="选择体验模式">
+                <button type="button" class="mode-btn active" data-mode="2d">经典 2D</button>
+                <button type="button" class="mode-btn" data-mode="3d" title="3D 模式会加载约 2MB 资源，建议 Wi-Fi">3D 沉浸</button>
+            </div>
         </div>
     </div>
     
@@ -57,7 +61,7 @@
     </div>
 
     <!-- 分享按钮 -->
-    <div id="share-control" class="hidden" role="button" tabindex="0" aria-label="分享这份生日祝福" title="分享">
+    <div id="share-control" class="hidden" role="button" tabindex="0" aria-label="把这份祝福分享给 TA" title="把这份祝福分享给 TA">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="18" cy="5" r="3"></circle>
             <circle cx="6" cy="12" r="3"></circle>
@@ -76,6 +80,24 @@
 
     <!-- 轻提示 -->
     <div id="toast" role="status" aria-live="polite"></div>
+
+    <!-- 狂欢结束后的操作 -->
+    <div id="ending-controls" class="hidden">
+        <button id="save-card-btn" class="pill-btn" type="button">保存祝福卡片</button>
+        <button id="replay-btn" class="pill-btn ghost" type="button">再看一次</button>
+    </div>
+
+    <!-- 祝福卡片预览 -->
+    <div id="card-preview" class="hidden" role="dialog" aria-modal="true" aria-label="祝福卡片预览">
+        <div class="card-preview-inner">
+            <img id="card-image" alt="生日祝福卡片">
+            <p id="card-hint">长按图片保存，或发给 TA</p>
+            <div class="card-preview-actions">
+                <a id="card-download" class="secondary-btn" download="birthday-card.png">下载图片</a>
+                <button id="card-close" class="secondary-btn" type="button">关闭</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 主内容区 -->
     <div id="main-content" class="hidden">
@@ -104,8 +126,9 @@
             <p>生日快乐</p>
             <p>在吹灭蜡烛前，先许个愿吧：</p>
             <div class="wish-input-container-inline">
-                <input type="text" id="pre-wish-input" placeholder="默念或输入愿望..." maxlength="20">
+                <input type="text" id="pre-wish-input" placeholder="比如：暴富" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
                 <button id="confirm-wish-btn" class="secondary-btn" type="button">许好了！</button>
+                <p class="wish-hint">悄悄说：愿望里藏着彩蛋，写点关键词会有惊喜</p>
             </div>
         </div>
 
@@ -155,7 +178,7 @@
                     <h2>愿望已发送</h2>
                     <p>祝你新的一年：</p>
                     <p class="wish-text" id="wish-display">万事胜意，未来可期！</p>
-                    <p class="instruction-text">点击礼物盒查收惊喜</p>
+                    <p class="instruction-text" id="egg-feedback">点击礼物盒查收惊喜</p>
                     <div class="gift-box" id="gift-box" role="button" tabindex="0" aria-label="拆开礼物">
                         <div class="gift-box-lid">
                             <div class="gift-bow"></div>
@@ -172,14 +195,14 @@
                 <div id="modal-step-2" class="hidden">
                     <h2>Surprise!</h2>
                     <p class="final-blessing">愿你所有的梦想<br>都像今晚的烟花一样绽放！</p>
-                    <p class="closing-hint">(3秒后进入狂欢模式...)</p>
+                    <p class="closing-hint">(烟花马上点亮…)</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 发布新版前把 v= 后面的日期改一下，可绕过 GitHub Pages 的缓存 -->
-    <script src="js/confetti.js?v=20261117"></script>
-    <script src="js/script.js?v=20261117"></script>
+    <script src="js/confetti.js?v=20261117f"></script>
+    <script src="js/script.js?v=20261117f"></script>
 </body>
 </html>
